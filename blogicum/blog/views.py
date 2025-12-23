@@ -1,13 +1,47 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+
+from .models import Post, Category
 
 
 def index(request):
-    return render(request, 'blog/index.html')
+    template = 'blog/index.html'
+    post_list = Post.published.select_related(
+        'category', 'author', 'location',
+    )[:5]
+    context = {
+        'post_list': post_list,
+    }
+    return render(request, template, context)
 
 
 def post_detail(request, id):
-    return render(request, 'blog/detail.html')
+    template = 'blog/detail.html'
+    post = get_object_or_404(
+        Post.published.select_related(
+            'category', 'author', 'location'
+        ),
+        id=id
+    )
+    context = {
+        'post': post,
+    }
+    return render(request, template, context)
 
 
 def category_posts(request, category_slug):
-    return render(request, 'blog/category.html')
+    template = 'blog/category.html'
+    category = get_object_or_404(
+        Category,
+        slug=category_slug,
+        is_published=True
+    )
+    post_list = Post.published.select_related(
+        'category', 'author', 'location'
+    ).filter(
+        category=category
+    )
+    context = {
+        'category': category,
+        'post_list': post_list,
+    }
+    return render(request, template, context)

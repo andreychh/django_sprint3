@@ -5,7 +5,22 @@ from django.utils import timezone
 User = get_user_model()
 
 
-class Category(models.Model):
+class PublishedModel(models.Model):
+    is_published = models.BooleanField(
+        default=True,
+        verbose_name='Опубликовано',
+        help_text='Снимите галочку, чтобы скрыть публикацию.',
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Добавлено',
+    )
+
+    class Meta:
+        abstract = True
+
+
+class Category(PublishedModel):
     title = models.CharField(
         max_length=256,
         verbose_name='Заголовок',
@@ -19,15 +34,6 @@ class Category(models.Model):
         help_text='Идентификатор страницы для URL; '
                   'разрешены символы латиницы, цифры, дефис и подчёркивание.',
     )
-    is_published = models.BooleanField(
-        default=True,
-        verbose_name='Опубликовано',
-        help_text='Снимите галочку, чтобы скрыть публикацию.',
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Добавлено',
-    )
 
     class Meta:
         verbose_name = 'категория'
@@ -37,19 +43,10 @@ class Category(models.Model):
         return self.title
 
 
-class Location(models.Model):
+class Location(PublishedModel):
     name = models.CharField(
         max_length=256,
         verbose_name='Название места',
-    )
-    is_published = models.BooleanField(
-        default=True,
-        verbose_name='Опубликовано',
-        help_text='Снимите галочку, чтобы скрыть публикацию.',
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Добавлено',
     )
 
     class Meta:
@@ -69,7 +66,7 @@ class PublishedPosts(models.Manager):
         )
 
 
-class Post(models.Model):
+class Post(PublishedModel):
     title = models.CharField(
         max_length=256,
         verbose_name='Заголовок',
@@ -81,15 +78,6 @@ class Post(models.Model):
         verbose_name='Дата и время публикации',
         help_text='Если установить дату и время в будущем — '
                   'можно делать отложенные публикации.',
-    )
-    is_published = models.BooleanField(
-        default=True,
-        verbose_name='Опубликовано',
-        help_text='Снимите галочку, чтобы скрыть публикацию.',
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Добавлено',
     )
     author = models.ForeignKey(
         User,

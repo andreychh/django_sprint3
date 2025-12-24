@@ -1,13 +1,22 @@
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 
-from .models import Post, Category
+from .models import Category, Post
+
+
+def published_posts(queryset):
+    return queryset.select_related(
+        'author', 'category', 'location'
+    ).filter(
+        pub_date__lte=timezone.now(),
+        is_published=True,
+        category__is_published=True
+    )
 
 
 def index(request):
     template = 'blog/index.html'
-    post_list = Post.published.select_related(
-        'author', 'category', 'location'
-    )[:5]
+    post_list = published_posts(Post.objects.all())[:5]
     context = {
         'post_list': post_list,
     }
@@ -17,9 +26,7 @@ def index(request):
 def post_detail(request, id):
     template = 'blog/detail.html'
     post = get_object_or_404(
-        Post.published.select_related(
-            'author', 'category', 'location'
-        ),
+        published_posts(Post.objects.all()),
         id=id
     )
     context = {
@@ -35,11 +42,7 @@ def category_posts(request, category_slug):
         slug=category_slug,
         is_published=True
     )
-    post_list = Post.published.select_related(
-        'author', 'category', 'location'
-    ).filter(
-        category=category
-    )
+    post_list = published_posts(category.posts)
     context = {
         'category': category,
         'post_list': post_list,
